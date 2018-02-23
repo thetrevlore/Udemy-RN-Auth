@@ -1,27 +1,49 @@
 import React, { Component } from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import firebase from 'firebase';
 
-import { Header } from './components/common';
+import { FIREBASE_API_KEY } from './secrets';
+import { Header, Button, CardSection, Spinner } from './components/common';
+import LoginForm from './components/LoginForm';
 
 class App extends Component {
+  state = { loggedIn: null };
 
   componentWillMount() {
     firebase.initializeApp({
-      apiKey: 'API KEY HERE',
+      apiKey: FIREBASE_API_KEY,
       authDomain: 'auth-cc92e.firebaseapp.com',
       databaseURL: 'https://auth-cc92e.firebaseio.com',
       projectId: 'auth-cc92e',
       storageBucket: 'auth-cc92e.appspot.com',
       messagingSenderId: '778806436617'
     });
+
+    firebase.auth().onAuthStateChanged((user) => {
+      user ? this.setState({ loggedIn: true }) : this.setState({ loggedIn: false });
+    });
+  }
+
+  renderContent() {
+    switch (this.state.loggedIn) {
+      case true:
+        return (
+          <CardSection>
+            <Button onPress={() => firebase.auth().signOut()}>Log Out</Button>
+          </CardSection>
+        );
+      case false:
+        return <LoginForm />;
+      default:
+        return <View style={{ alignSelf: 'center' }}><Spinner size="large" /></View>;
+    }
   }
 
   render() {
     return (
       <View>
         <Header headerText="Authentication" />
-        <Text>Heyo</Text>
+        {this.renderContent()}
       </View>
     );
   }
